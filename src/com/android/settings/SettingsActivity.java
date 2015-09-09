@@ -113,6 +113,8 @@ import com.android.settings.wifi.SavedAccessPointsWifiSettings;
 import com.android.settings.wifi.WifiSettings;
 import com.android.settings.wifi.p2p.WifiP2pSettings;
 
+import de.fraunhofer.aisec.trustme.util.Prefs;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -1215,6 +1217,31 @@ public class SettingsActivity extends Activity
                 } else if (id == R.id.development_settings) {
                     if (!showDev || um.hasUserRestriction(
                             UserManager.DISALLOW_DEBUGGING_FEATURES)) {
+                        removeTile = true;
+                    }
+                } else if (id == R.id.application_settings) {
+                    // Remove application settings in a0.
+                    if (Prefs.canManagePrivilegedServices(null)) {
+                        removeTile = true;
+                    }
+                } else if (id == R.id.storage_settings) {
+                    // Remove storage settings in a0.
+                    if (Prefs.canManagePrivilegedServices(null)) {
+                        removeTile = true;
+                    }
+                } else if (id == R.id.location_settings) {
+                    // Remove location settings in a0.
+                    if (Prefs.canManagePrivilegedServices(null)) {
+                        removeTile = true;
+                    }
+                } else if (id == R.id.account_settings) {
+                    // Remove account settings part in a0.
+                    if (Prefs.canManagePrivilegedServices(null)) {
+                        removeTile = true;
+                    }
+                } else if (id == R.id.privacy_settings) {
+                    // Backup and Reset is called "privacy settings" which are removed in a0.
+                    if (Prefs.canManagePrivilegedServices(null)) {
                         removeTile = true;
                     }
                 }

@@ -58,6 +58,8 @@ import com.android.settings.search.SearchIndexableRaw;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.fraunhofer.aisec.trustme.util.Prefs;
+
 import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
 
 /**
@@ -220,15 +222,17 @@ public class SecuritySettings extends SettingsPreferenceFragment
             }
         }
 
-        if (mIsPrimary) {
-            if (LockPatternUtils.isDeviceEncryptionEnabled()) {
-                // The device is currently encrypted.
-                addPreferencesFromResource(R.xml.security_settings_encrypted);
-            } else {
-                // This device supports encryption but isn't encrypted.
-                addPreferencesFromResource(R.xml.security_settings_unencrypted);
-            }
-        }
+        // if (mIsPrimary) {
+        //     if (LockPatternUtils.isDeviceEncryptionEnabled()) {
+        //         // The device is currently encrypted.
+        //         addPreferencesFromResource(R.xml.security_settings_encrypted);
+        //     } else {
+        //         // This device supports encryption but isn't encrypted.
+        //         addPreferencesFromResource(R.xml.security_settings_unencrypted);
+        //     }
+        // }
+        // We enforce encryption in the CML, thus load the settings for encrypted devices
+        addPreferencesFromResource(R.xml.security_settings_encrypted);
 
         // Trust Agent preferences
         PreferenceGroup securityCategory = (PreferenceGroup)
@@ -293,12 +297,12 @@ public class SecuritySettings extends SettingsPreferenceFragment
             }
         }
 
-        // Append the rest of the settings
-        addPreferencesFromResource(R.xml.security_settings_misc);
+        // Append the SIM LOCK settings
+        addPreferencesFromResource(R.xml.security_settings_sim);
 
         // Do not display SIM lock for devices without an Icc card
         TelephonyManager tm = TelephonyManager.getDefault();
-        if (!mIsPrimary || !isSimIccReady()) {
+        if (!mIsPrimary || !isSimIccReady() || !Prefs.canManagePrivilegedServices(null)) {
             root.removePreference(root.findPreference(KEY_SIM_LOCK));
         } else {
             // Disable SIM lock if there is no ready SIM card.
@@ -309,6 +313,17 @@ public class SecuritySettings extends SettingsPreferenceFragment
             root.findPreference(KEY_SCREEN_PINNING).setSummary(
                     getResources().getString(R.string.switch_on_text));
         }
+
+        // remove unnecessary security settings in Manager (stop here before adding misc stuff)
+        if (Prefs.canManagePrivilegedServices(null)) {
+            if (securityCategory != null) {
+                securityCategory.removePreference(root.findPreference(KEY_OWNER_INFO_SETTINGS));
+            }
+            return root;
+        }
+
+        // Append the rest of the settings
+        addPreferencesFromResource(R.xml.security_settings_misc);
 
         // Show password
         mShowPassword = (SwitchPreference) root.findPreference(KEY_SHOW_PASSWORD);
@@ -762,6 +777,14 @@ public class SecuritySettings extends SettingsPreferenceFragment
                 result.add(sir);
             }
 
+            // Append SIM LOCK settings
+            sir = new SearchIndexableResource(context);
+            sir.xmlResId = R.xml.security_settings_sim;
+            result.add(sir);
+
+            if (!Prefs.canManagePrivilegedServices(null))
+                return result;
+
             // Append the rest of the settings
             sir = new SearchIndexableResource(context);
             sir.xmlResId = R.xml.security_settings_misc;
@@ -841,7 +864,7 @@ public class SecuritySettings extends SettingsPreferenceFragment
 
             // Do not display SIM lock for devices without an Icc card
             TelephonyManager tm = TelephonyManager.getDefault();
-            if (!mIsPrimary || !tm.hasIccCard()) {
+            if (!mIsPrimary || !tm.hasIccCard() || !Prefs.canManagePrivilegedServices(null)) {
                 keys.add(KEY_SIM_LOCK);
             }
 

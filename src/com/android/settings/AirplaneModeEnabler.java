@@ -16,6 +16,7 @@
 
 package com.android.settings;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -29,6 +30,8 @@ import android.provider.Settings;
 
 import com.android.internal.telephony.PhoneStateIntentReceiver;
 import com.android.internal.telephony.TelephonyProperties;
+
+import de.fraunhofer.aisec.trustme.util.Prefs;
 
 public class AirplaneModeEnabler implements Preference.OnPreferenceChangeListener {
 
@@ -120,6 +123,9 @@ public class AirplaneModeEnabler implements Preference.OnPreferenceChangeListene
      * Called when someone clicks on the checkbox preference.
      */
     public boolean onPreferenceChange(Preference preference, Object newValue) {
+        if (!Prefs.canManagePrivilegedServices((Activity) mContext))
+            return false;
+
         if (Boolean.parseBoolean(
                     SystemProperties.get(TelephonyProperties.PROPERTY_INECM_MODE))) {
             // In ECM mode, do not update database at this point

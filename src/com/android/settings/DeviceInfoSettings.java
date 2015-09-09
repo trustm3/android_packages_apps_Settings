@@ -44,6 +44,8 @@ import com.android.settings.search.BaseSearchIndexProvider;
 import com.android.settings.search.Index;
 import com.android.settings.search.Indexable;
 
+import de.fraunhofer.aisec.trustme.util.Prefs;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -93,7 +95,7 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
 
         addPreferencesFromResource(R.xml.device_info_settings);
 
-        setStringSummary(KEY_FIRMWARE_VERSION, Build.VERSION.RELEASE);
+        setStringSummary(KEY_FIRMWARE_VERSION, Build.VERSION.RELEASE + Prefs.getTrustmeVersion(true));
         findPreference(KEY_FIRMWARE_VERSION).setEnabled(true);
         String patch = Build.VERSION.SECURITY_PATCH;
         if (!"".equals(patch)) {
@@ -178,6 +180,11 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
             if (pref != null) {
                 getPreferenceScreen().removePreference(pref);
             }
+        }
+
+        // Remove license info from management container
+        if (Prefs.canManagePrivilegedServices(null)) {
+            getPreferenceScreen().removePreference(findPreference(KEY_CONTAINER));
         }
     }
 

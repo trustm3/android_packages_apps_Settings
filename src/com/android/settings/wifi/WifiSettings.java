@@ -64,6 +64,8 @@ import com.android.settings.search.BaseSearchIndexProvider;
 import com.android.settings.search.Indexable;
 import com.android.settings.search.SearchIndexableRaw;
 
+import de.fraunhofer.aisec.trustme.util.Prefs;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -385,7 +387,7 @@ public class WifiSettings extends RestrictedSettingsFragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // If the user is not allowed to configure wifi, do not show the menu.
-        if (isUiRestricted()) return;
+        if (isUiRestricted() || !Prefs.canManagePrivilegedServices(null)) return;
 
         addOptionsMenuItems(menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -532,6 +534,10 @@ public class WifiSettings extends RestrictedSettingsFragment
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        // show switch PopUp if we are not privileged
+        if (!Prefs.canManagePrivilegedServices(getActivity())) {
+            return super.onContextItemSelected(item);
+        }
         if (mSelectedAccessPoint == null) {
             return super.onContextItemSelected(item);
         }
@@ -566,6 +572,11 @@ public class WifiSettings extends RestrictedSettingsFragment
 
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen screen, Preference preference) {
+        // show switch PopUp if we are not privileged
+        if (!Prefs.canManagePrivilegedServices(getActivity())) {
+            return super.onPreferenceTreeClick(screen, preference);
+        }
+
         if (preference instanceof AccessPoint) {
             mSelectedAccessPoint = (AccessPoint) preference;
             /** Bypass dialog for unsecured, unsaved, and inactive networks */

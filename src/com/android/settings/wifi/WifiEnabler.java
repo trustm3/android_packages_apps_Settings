@@ -16,6 +16,7 @@
 
 package com.android.settings.wifi;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -34,6 +35,8 @@ import com.android.settings.R;
 import com.android.settings.WirelessSettings;
 import com.android.settings.search.Index;
 import com.android.settings.widget.SwitchBar;
+
+import de.fraunhofer.aisec.trustme.util.Prefs;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -195,6 +198,11 @@ public class WifiEnabler implements SwitchBar.OnSwitchChangeListener  {
         if (mStateMachineEvent) {
             return;
         }
+ 
+        // show switch dialog if we are not privileged
+        if (!Prefs.canManagePrivilegedServices((Activity) mContext))
+            return;
+
         // Show toast message if Wi-Fi is not allowed in airplane mode
         if (isChecked && !WirelessSettings.isRadioAllowed(mContext, Settings.Global.RADIO_WIFI)) {
             Toast.makeText(mContext, R.string.wifi_in_airplane_mode, Toast.LENGTH_SHORT).show();

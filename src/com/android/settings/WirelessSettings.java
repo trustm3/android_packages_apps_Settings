@@ -55,6 +55,8 @@ import com.android.settings.nfc.NfcEnabler;
 import com.android.settings.search.BaseSearchIndexProvider;
 import com.android.settings.search.Indexable;
 
+import de.fraunhofer.aisec.trustme.util.Prefs;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -123,6 +125,10 @@ public class WirelessSettings extends SettingsPreferenceFragment
         log("onManageMobilePlanClick:");
         mManageMobilePlanMessage = null;
         Resources resources = getActivity().getResources();
+
+        // only allow Manager Container to configure MobilePlan
+        if (!Prefs.canManagePrivilegedServices(getActivity()))
+            return;
 
         NetworkInfo ni = mCm.getProvisioningOrActiveNetworkInfo();
         if (mTm.hasIccCard() && (ni != null)) {
@@ -242,7 +248,7 @@ public class WirelessSettings extends SettingsPreferenceFragment
 
     private boolean isSmsSupported() {
         // Some tablet has sim card but could not do telephony operations. Skip those.
-        return mTm.isSmsCapable();
+        return Prefs.hasFeatureTelephony() && mTm.isSmsCapable();
     }
 
     @Override
@@ -336,7 +342,8 @@ public class WirelessSettings extends SettingsPreferenceFragment
         // Remove Mobile Network Settings and Manage Mobile Plan for secondary users,
         // if it's a wifi-only device, or if the settings are restricted.
         if (isSecondaryUser || Utils.isWifiOnly(getActivity())
-                || mUm.hasUserRestriction(UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS)) {
+                || mUm.hasUserRestriction(UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS)
+                || !Prefs.canManagePrivilegedServices(null)) {
             removePreference(KEY_MOBILE_NETWORK_SETTINGS);
             removePreference(KEY_MANAGE_MOBILE_PLAN);
         }
